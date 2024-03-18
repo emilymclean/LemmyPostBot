@@ -21,7 +21,7 @@ class RepeatedPostHandler(Handler):
         )
 
     def can_handle(self, config: Any) -> bool:
-        return config is RepeatedPostHandler
+        return isinstance(config, RepeatedPost)
 
     def initial(self, config: RepeatedPost) -> List[ScheduledCallback]:
         return [RepeatedPostHandler.get_next(config)]
@@ -36,20 +36,21 @@ class CreatePostTask(Task):
     def handle(self, request: LemmyHttp) -> List[ScheduledCallback]:
         scheduled = []
 
+        print("Making post")
         post_id = PostHelper.create_post(
             request,
             self.config.context,
             self.config.post
         )
 
-        scheduled += RepeatedPostHandler.get_next(self.config)
+        scheduled.append(RepeatedPostHandler.get_next(self.config))
 
         if self.config.pin is not None:
             PostHelper.pin_post(request, post_id, True)
-            scheduled += ScheduledCallback(
+            scheduled.append(ScheduledCallback(
                 datetime.now() + isodate.parse_duration(self.config.pin.pin_for),
                 PostUnpinTask(post_id).handle
-            )
+            ))
 
         return scheduled
 

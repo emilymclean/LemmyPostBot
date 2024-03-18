@@ -33,18 +33,21 @@ class LemmyPostBot:
         )
 
     def run(self):
+        print("Initialising configuration")
         self._handle(self.config.repeated)
 
         while True:
+            print(f"Task queue size {len(self._queue)}")
             if len(self._queue) == 0:
                 return
 
-            callback, config = self._queue.pop(0)
+            callback = self._queue.pop(0)
             waiting_time = (callback.time - datetime.now()).total_seconds()
+            print(f"Waiting time for next item: {waiting_time}")
             if waiting_time > 0:
                 sleep(waiting_time)
 
-            self._add_all_to_queue(callback.callback(self.http, config))
+            self._add_all_to_queue(callback.callback(self.http))
             pass
 
     def _handle(self, configs: List[Any]):
@@ -62,7 +65,8 @@ class LemmyPostBot:
 
     def _add_to_queue(self, callback: ScheduledCallback):
         if len(self._queue) == 0:
-            self._queue += callback
+            self._queue.append(callback)
+            return
 
         index = -1
         for i, item in enumerate(self._queue):
@@ -71,6 +75,6 @@ class LemmyPostBot:
                 break
 
         if index == -1:
-            self._queue += callback
+            self._queue.append(callback)
         else:
             self._queue.insert(index, callback)
