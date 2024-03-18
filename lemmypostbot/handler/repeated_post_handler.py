@@ -5,53 +5,61 @@ import isodate
 from croniter import croniter
 from plemmy import LemmyHttp
 
-from .handler import Handler, ScheduledCallback
+from .handler import Handler, ScheduledCallback, Task
 from .. import RepeatedPost, PostHelper
 
 
 class RepeatedPostHandler(Handler):
 
-    def can_handle(self, config: Any) -> bool:
-        return config is RepeatedPostHandler
-
-    def _get_next(self, config: RepeatedPost) -> ScheduledCallback:
+    @staticmethod
+    def get_next(config: RepeatedPost) -> ScheduledCallback:
         cron = croniter(config.period, datetime.now())
         next_run = cron.get_next(datetime)
         return ScheduledCallback(
             next_run,
-            self.handle
+            CreatePostTask(config).handle
         )
 
-    def initial(self, config: RepeatedPost) -> List[ScheduledCallback]:
-        return [self._get_next(config)]
+    def can_handle(self, config: Any) -> bool:
+        return config is RepeatedPostHandler
 
-    def handle(self, request: LemmyHttp, config: RepeatedPost) -> List[ScheduledCallback]:
+    def initial(self, config: RepeatedPost) -> List[ScheduledCallback]:
+        return [RepeatedPostHandler.get_next(config)]
+
+
+class CreatePostTask(Task):
+    config: RepeatedPost
+
+    def __init__(self, config: RepeatedPost):
+        self.config = config
+
+    def handle(self, request: LemmyHttp) -> List[ScheduledCallback]:
         scheduled = []
 
         post_id = PostHelper.create_post(
             request,
-            config.context,
-            config.post
+            self.config.context,
+            self.config.post
         )
 
-        scheduled += self._get_next(config)
+        scheduled += RepeatedPostHandler.get_next(self.config)
 
-        if config.pin is not None:
+        if self.config.pin is not None:
             PostHelper.pin_post(request, post_id, True)
             scheduled += ScheduledCallback(
-                datetime.now() + isodate.parse_duration(config.pin.pin_for),
-                PostUnpinTask(post_id).unpin
+                datetime.now() + isodate.parse_duration(self.config.pin.pin_for),
+                PostUnpinTask(post_id).handle
             )
 
         return scheduled
 
 
-class PostUnpinTask:
+class PostUnpinTask(Task):
     post_id: int
 
     def __init__(self, post_id: int):
         self.post_id = post_id
 
-    def unpin(self, request: LemmyHttp, config: RepeatedPost) -> List[ScheduledCallback]:
+    def handle(self, request: LemmyHttp) -> List[ScheduledCallback]:
         PostHelper.pin_post(request, self.post_id, False)
         return []

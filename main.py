@@ -12,4 +12,4 @@ if __name__ == "__main__":
     config = Config.from_yaml(content)
 
     lemmypostbot = LemmyPostBot.create(lemmy, config)
-    
+    lemmypostbot.run()

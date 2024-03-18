@@ -9,7 +9,7 @@ from plemmy import LemmyHttp
 @dataclass
 class ScheduledCallback:
     time: datetime
-    callback: Callable[[LemmyHttp, Any], List[Any]]  # Returned Any is actually ScheduledCallback
+    callback: Callable[[LemmyHttp], List[Any]]  # Returned Any is actually ScheduledCallback
 
 
 class Handler(ABC):
@@ -22,6 +22,9 @@ class Handler(ABC):
     def initial(self, config: Any) -> List[ScheduledCallback]:
         pass
 
+
+class Task(ABC):
+
     @abstractmethod
-    def handle(self, request: LemmyHttp, config: Any) -> List[ScheduledCallback]:
+    def handle(self, http: LemmyHttp) -> List[ScheduledCallback]:
         pass
