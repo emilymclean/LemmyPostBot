@@ -1,0 +1,7 @@
+repeated:
+  - period: "* * * * *"
+    post:
+      title: "Test"
+      content: "Test content"
+    pin:
+      pin_for: "PT1H5M26S"

@@ -6,6 +6,10 @@ name = "pypi"
 [packages]
 plemmy = "==0.4.1"
 pyyaml = "*"
+dataclass-wizard = "*"
+dataclasses = "*"
+isodate = "*"
+croniter = "*"
 
 [dev-packages]
 
