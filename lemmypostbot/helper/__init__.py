@@ -1,1 +1,1 @@
-from post_helper import PostHelper
+from .post_helper import PostHelper
