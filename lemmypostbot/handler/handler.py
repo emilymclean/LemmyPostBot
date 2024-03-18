@@ -15,6 +15,10 @@ class ScheduledCallback:
 class Handler(ABC):
 
     @abstractmethod
+    def can_handle(self, config: Any) -> bool:
+        pass
+
+    @abstractmethod
     def initial(self, config: Any) -> List[ScheduledCallback]:
         pass
 

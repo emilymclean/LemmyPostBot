@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Any
 
 import isodate
 from croniter import croniter
@@ -10,6 +10,9 @@ from .. import RepeatedPost, PostHelper
 
 
 class RepeatedPostHandler(Handler):
+
+    def can_handle(self, config: Any) -> bool:
+        return config is RepeatedPostHandler
 
     def _get_next(self, config: RepeatedPost) -> ScheduledCallback:
         cron = croniter(config.period, datetime.now())
