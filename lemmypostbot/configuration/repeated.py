@@ -11,4 +11,5 @@ class RepeatedPost(YAMLWizard):
     period: str  # Cron
     post: PostTemplate
     context: PostContext
+    only_first_of_month: bool = False  # Only post on the first trigger of the month
     pin: Optional[PinSettings] = field(default_factory=lambda: None)

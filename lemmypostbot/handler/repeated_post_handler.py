@@ -34,7 +34,10 @@ class CreatePostTask(Task):
         self.config = config
 
     def handle(self, request: LemmyHttp) -> List[ScheduledCallback]:
-        scheduled = []
+        scheduled = [RepeatedPostHandler.get_next(self.config)]
+
+        if self.config.only_first_of_month and not self._first_occurrence_in_month():
+            return scheduled
 
         print("Making post")
         post_id = PostHelper.create_post(
@@ -42,8 +45,6 @@ class CreatePostTask(Task):
             self.config.context,
             self.config.post
         )
-
-        scheduled.append(RepeatedPostHandler.get_next(self.config))
 
         if self.config.pin is not None:
             PostHelper.pin_post(request, post_id, True)
@@ -53,6 +54,12 @@ class CreatePostTask(Task):
             ))
 
         return scheduled
+
+    def _first_occurrence_in_month(self) -> bool:
+        cron = croniter(self.config.period, datetime.today().replace(day=1))
+        next_run: datetime = cron.get_next(datetime)
+
+        return next_run.day == datetime.today().day
 
 
 class PostUnpinTask(Task):
