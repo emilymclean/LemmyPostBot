@@ -55,11 +55,11 @@ class CreatePostTask(Task):
 
         return scheduled
 
-    def _first_occurrence_in_month(self) -> bool:
-        cron = croniter(self.config.period, datetime.today().replace(day=1))
+    def _first_occurrence_in_month(self, current_date: datetime = datetime.today()) -> bool:
+        cron = croniter(self.config.period, current_date.replace(day=1))
         next_run: datetime = cron.get_next(datetime)
 
-        return next_run.day == datetime.today().day
+        return next_run.day == current_date.day
 
 
 class PostUnpinTask(Task):
