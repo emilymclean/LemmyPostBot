@@ -3,7 +3,7 @@ from typing import List, Any
 
 import isodate
 from croniter import croniter
-from plemmy import LemmyHttp
+from pythonlemmy import LemmyHttp
 
 from .handler import Handler, ScheduledCallback, Task
 from .. import RepeatedPost, PostHelper

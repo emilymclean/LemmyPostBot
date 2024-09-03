@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Callable, Any, List
 
-from plemmy import LemmyHttp
+from pythonlemmy import LemmyHttp
 
 
 @dataclass
