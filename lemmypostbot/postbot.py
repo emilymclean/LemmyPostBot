@@ -2,7 +2,7 @@ from datetime import datetime
 from time import sleep
 from typing import List, Any
 
-from plemmy import LemmyHttp
+from pythonlemmy import LemmyHttp
 
 from . import RepeatedPostHandler
 from .configuration import Config

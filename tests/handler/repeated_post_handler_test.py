@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from plemmy import LemmyHttp
+from pythonlemmy import LemmyHttp
 
 from lemmypostbot import RepeatedPost, RepeatedPostHandler, PostTemplate, PostContext
 from lemmypostbot.handler.handler import ScheduledCallback

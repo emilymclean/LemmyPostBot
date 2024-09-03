@@ -1,5 +1,5 @@
-from plemmy import LemmyHttp
-from plemmy.responses import GetCommunityResponse, PostResponse
+from pythonlemmy import LemmyHttp
+from pythonlemmy.responses import GetCommunityResponse, PostResponse
 
 from .. import PostContext, PostTemplate
 
