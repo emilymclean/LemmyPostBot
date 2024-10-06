@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Any
+from typing import List, Any, Dict
 
 import isodate
 from croniter import croniter
@@ -17,7 +17,8 @@ class RepeatedPostHandler(Handler):
         next_run = cron.get_next(datetime)
         return ScheduledCallback(
             next_run,
-            CreatePostTask(config).handle
+            CreatePostTask.name,
+            {"config": config}
         )
 
     def can_handle(self, config: Any) -> bool:
@@ -26,48 +27,55 @@ class RepeatedPostHandler(Handler):
     def initial(self, config: RepeatedPost) -> List[ScheduledCallback]:
         return [RepeatedPostHandler.get_next(config)]
 
+    def list_tasks(self) -> List[Task]:
+        return [CreatePostTask(), PostUnpinTask()]
+
 
 class CreatePostTask(Task):
-    config: RepeatedPost
+    name = "create_post_task"
 
-    def __init__(self, config: RepeatedPost):
-        self.config = config
+    def task_name(self) -> str:
+        return self.name
 
-    def handle(self, request: LemmyHttp) -> List[ScheduledCallback]:
-        scheduled = [RepeatedPostHandler.get_next(self.config)]
+    def exec(self, request: LemmyHttp, args: Dict[str, Any]) -> List[ScheduledCallback]:
+        config: RepeatedPost = args["config"]
+        scheduled = [RepeatedPostHandler.get_next(config)]
 
-        if self.config.only_first_of_month and not self._first_occurrence_in_month():
+        if config.only_first_of_month and not self._first_occurrence_in_month(config):
             return scheduled
 
         print("Making post")
         post_id = PostHelper.create_post(
             request,
-            self.config.context,
-            self.config.post
+            config.context,
+            config.post
         )
 
-        if self.config.pin is not None:
+        if config.pin is not None:
             PostHelper.pin_post(request, post_id, True)
             scheduled.append(ScheduledCallback(
-                datetime.now() + isodate.parse_duration(self.config.pin.pin_for),
-                PostUnpinTask(post_id).handle
+                datetime.now() + isodate.parse_duration(config.pin.pin_for),
+                PostUnpinTask.name,
+                {"post_id": post_id}
             ))
 
         return scheduled
 
-    def _first_occurrence_in_month(self, current_date: datetime = datetime.today()) -> bool:
-        cron = croniter(self.config.period, current_date.replace(day=1))
+    @staticmethod
+    def _first_occurrence_in_month(config: RepeatedPost, current_date: datetime = datetime.today()) -> bool:
+        cron = croniter(config.period, current_date.replace(day=1))
         next_run: datetime = cron.get_next(datetime)
 
         return next_run.day == current_date.day
 
 
 class PostUnpinTask(Task):
-    post_id: int
+    name = "post_unpin_task"
 
-    def __init__(self, post_id: int):
-        self.post_id = post_id
+    def task_name(self) -> str:
+        return self.name
 
-    def handle(self, request: LemmyHttp) -> List[ScheduledCallback]:
-        PostHelper.pin_post(request, self.post_id, False)
+    def exec(self, request: LemmyHttp, args: Dict[str, Any]) -> List[ScheduledCallback]:
+        post_id: int = args["post_id"]
+        PostHelper.pin_post(request, post_id, False)
         return []

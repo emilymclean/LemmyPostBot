@@ -90,10 +90,10 @@ class TestCreatePostTask(unittest.TestCase):
         request = MagicMock(spec=LemmyHttp)
 
         # Create the CreatePostTask instance
-        task = CreatePostTask(config)
+        task = CreatePostTask()
 
         # Call the handle method and assert the return value
-        scheduled_callbacks = task.handle(request)
+        scheduled_callbacks = task.exec(request, {"config": config})
         self.assertIsInstance(scheduled_callbacks, list)
 
     def test_first_occurrence_in_month(self):
@@ -111,17 +111,14 @@ class TestCreatePostTask(unittest.TestCase):
 
         current_date = datetime(year=2024, month=5, day=1)
 
-        # Create the CreatePostTask instance
-        task = CreatePostTask(config)
-
         # Call the _first_occurrence_in_month method
-        result = task._first_occurrence_in_month(current_date)
+        result = CreatePostTask._first_occurrence_in_month(config, current_date)
 
         # Assert that the result is True since today is the first of the month
         self.assertTrue(result)
 
         current_date = datetime(year=2024, month=5, day=15)
-        result = task._first_occurrence_in_month(current_date)
+        result = CreatePostTask._first_occurrence_in_month(config, current_date)
         self.assertFalse(result)
 
     def test_first_occurrence_in_month_weekday(self):
@@ -139,17 +136,14 @@ class TestCreatePostTask(unittest.TestCase):
 
         current_date = datetime(year=2024, month=5, day=3)
 
-        # Create the CreatePostTask instance
-        task = CreatePostTask(config)
-
         # Call the _first_occurrence_in_month method
-        result = task._first_occurrence_in_month(current_date)
+        result = CreatePostTask._first_occurrence_in_month(config, current_date)
 
         # Assert that the result is True since today is the first of the month
         self.assertTrue(result)
 
         current_date = datetime(year=2024, month=5, day=10)
-        result = task._first_occurrence_in_month(current_date)
+        result = CreatePostTask._first_occurrence_in_month(config, current_date)
         self.assertFalse(result)
 
 
@@ -163,8 +157,8 @@ class TestPostUnpinTask(unittest.TestCase):
         request = MagicMock(spec=LemmyHttp)
 
         # Create the PostUnpinTask instance
-        task = PostUnpinTask(post_id)
+        task = PostUnpinTask()
 
         # Call the handle method and assert the return value
-        scheduled_callbacks = task.handle(request)
+        scheduled_callbacks = task.exec(request, {"post_id": post_id})
         self.assertIsInstance(scheduled_callbacks, list)

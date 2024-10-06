@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable, Any, List
+from typing import Callable, Any, List, Dict
 
 from pythonlemmy import LemmyHttp
 
@@ -9,7 +9,19 @@ from pythonlemmy import LemmyHttp
 @dataclass
 class ScheduledCallback:
     time: datetime
-    callback: Callable[[LemmyHttp], List[Any]]  # Returned Any is actually ScheduledCallback
+    task_name: str
+    task_args: Dict[str, Any]
+
+
+class Task(ABC):
+
+    @abstractmethod
+    def task_name(self) -> str:
+        pass
+
+    @abstractmethod
+    def exec(self, http: LemmyHttp, args: Dict[str, Any]) -> List[ScheduledCallback]:
+        pass
 
 
 class Handler(ABC):
@@ -22,9 +34,6 @@ class Handler(ABC):
     def initial(self, config: Any) -> List[ScheduledCallback]:
         pass
 
-
-class Task(ABC):
-
     @abstractmethod
-    def handle(self, http: LemmyHttp) -> List[ScheduledCallback]:
+    def list_tasks(self) -> List[Task]:
         pass

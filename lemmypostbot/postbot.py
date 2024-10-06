@@ -1,25 +1,27 @@
 from datetime import datetime
 from time import sleep
-from typing import List, Any
+from typing import List, Any, Dict
 
 from pythonlemmy import LemmyHttp
 
 from . import RepeatedPostHandler
 from .configuration import Config
 from .handler import Handler
-from .handler.handler import ScheduledCallback
+from .handler.handler import ScheduledCallback, Task
 
 
 class LemmyPostBot:
     http: LemmyHttp
     config: Config
     handlers: List[Handler]
+    _tasks: Dict[str, Task]
     _queue: List[ScheduledCallback] = []
 
     def __init__(self, http: LemmyHttp, config: Config, handlers: List[Handler]):
         self.http = http
         self.config = config
         self.handlers = handlers
+        self._tasks = {task.task_name(): task for i in handlers for task in i.list_tasks()}
 
     @staticmethod
     def create(
@@ -47,7 +49,8 @@ class LemmyPostBot:
             if waiting_time > 0:
                 sleep(waiting_time)
 
-            self._add_all_to_queue(callback.callback(self.http))
+            task = self._tasks[callback.task_name]
+            self._add_all_to_queue(task.exec(self.http, callback.task_args))
             pass
 
     def _handle(self, configs: List[Any]):
