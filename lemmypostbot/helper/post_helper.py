@@ -34,4 +34,8 @@ class PostHelper:
             post_id: int,
             pinned: bool
     ):
-        request.feature_post("Community", pinned, post_id)
+        request.feature_post(
+            feature_type="Community",
+            featured=pinned,
+            post_id=post_id
+        )
